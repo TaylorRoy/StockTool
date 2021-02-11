@@ -2,6 +2,7 @@ plugins {
 	id 'org.springframework.boot' version '2.4.2'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
+	id "com.moowork.node" version "1.3.1"
 }
 
 group = 'com.example'
@@ -13,10 +14,71 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	runtimeOnly 'mysql:mysql-connector-java'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+}
+
+node {
+  // Version of node to use.
+  version = '14.15.5'
+
+  // Version of npm to use.
+  // npmVersion = '2.1.5'
+
+  // Version of Yarn to use.
+  // yarnVersion = '0.16.1'
+
+  // Base URL for fetching node distributions (change if you have a mirror).
+  distBaseUrl = 'https://nodejs.org/dist'
+
+  // If true, it will download node using above parameters.
+  // If false, it will try to use globally installed node.
+  download = true
+
+  // Set the work directory for unpacking node
+  workDir = file("${project.buildDir}/src/main/myfrontend/nodejs")
+
+  // Set the work directory for NPM
+  npmWorkDir = file("${project.buildDir}/src/main/myfrontend/npm")
+
+  // Set the work directory for Yarn
+  yarnWorkDir = file("${project.buildDir}/src/main/myfrontend/yarn")
+
+  // Set the work directory where node_modules should be located
+  nodeModulesDir = file("${project.projectDir}/src/main/myfrontend")
+}
+
+task npmInstallDependencies(type: NpmTask) {
+	dependsOn 'npmSetup'
+	execOverrides {
+	it.ignoreExitValue = True
+    it.workingDir = 'src/main/myfrontend'
+  }
+  args = ['install']
+}
+
+task npmBuild(type: NpmTask) {
+	dependsOn 'npmInstallDependencies'  //only builds if npmInstallDependencies does run
+  	execOverrides {
+    it.workingDir = 'src/main/myfrontend'
+  }
+  args = ['run', 'build']
+}
+
+task copyFrontendtoBuild(type: Copy) {
+	dependsOn 'npmBuild'
+	from "$projectDir/src/main/myfrontend/build/"
+	into "$buildDir/src/resources/static"  //will be converted to html in this file
+}
+
+processResources {
+	dependsOn 'copyFrontendtoBuild'
 }
 
 test {
 	useJUnitPlatform()
 }
+

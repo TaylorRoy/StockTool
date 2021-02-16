@@ -23,7 +23,7 @@ dependencies {
 
 node {
   // Version of node to use.
-  version = '14.15.5'
+  version = '10.16.2'
 
   // Version of npm to use.
   // npmVersion = '2.1.5'
@@ -32,7 +32,7 @@ node {
   // yarnVersion = '0.16.1'
 
   // Base URL for fetching node distributions (change if you have a mirror).
-  distBaseUrl = 'https://nodejs.org/dist'
+  // distBaseUrl = 'https://nodejs.org/dist'
 
   // If true, it will download node using above parameters.
   // If false, it will try to use globally installed node.
@@ -51,10 +51,18 @@ node {
   nodeModulesDir = file("${project.projectDir}/src/main/myfrontend")
 }
 
+repositories.whenObjectAdded {
+    if (it instanceof IvyArtifactRepository) {
+        metadataSources {
+            artifact()
+        }
+    }
+}
+
 task npmInstallDependencies(type: NpmTask) {
 	dependsOn 'npmSetup'
 	execOverrides {
-	it.ignoreExitValue = True
+	  it.ignoreExitValue = true
     it.workingDir = 'src/main/myfrontend'
   }
   args = ['install']
@@ -71,7 +79,7 @@ task npmBuild(type: NpmTask) {
 task copyFrontendtoBuild(type: Copy) {
 	dependsOn 'npmBuild'
 	from "$projectDir/src/main/myfrontend/build/"
-	into "$buildDir/src/resources/static"  //will be converted to html in this file
+	into "$buildDir/src/main/resources/static"  //will be converted to html in this file
 }
 
 processResources {

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import antlr.collections.List;
@@ -22,6 +23,11 @@ public class StockController {
     @PostMapping("/stock")
     public void stockBuy(@RequestBody StockModel stockModel) {
         StockModel entity = stockModelRepository.save(stockModel);
+    }
+
+    @RequestMapping(value= "/index")
+    public String index() {
+        return "index";
     }
 
     @GetMapping(value = "/allstocks")

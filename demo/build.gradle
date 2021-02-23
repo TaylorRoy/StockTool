@@ -2,10 +2,10 @@ plugins {
 	id 'org.springframework.boot' version '2.4.2'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
-	id "com.moowork.node" version "1.3.1"
+	id("com.github.node-gradle.node") version "3.0.1"
 }
 
-group = 'com.example'
+group = 'demo'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
 
@@ -14,79 +14,33 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	runtimeOnly 'mysql:mysql-connector-java'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    runtimeOnly 'mysql:mysql-connector-java'
 }
 
 node {
-  // Version of node to use.
-  version = '10.16.2'
-
-  // Version of npm to use.
-  // npmVersion = '2.1.5'
-
-  // Version of Yarn to use.
-  // yarnVersion = '0.16.1'
-
-  // Base URL for fetching node distributions (change if you have a mirror).
-  // distBaseUrl = 'https://nodejs.org/dist'
-
-  // If true, it will download node using above parameters.
-  // If false, it will try to use globally installed node.
-  download = true
-
-  // Set the work directory for unpacking node
-  workDir = file("${project.buildDir}/src/main/myfrontend/nodejs")
-
-  // Set the work directory for NPM
-  npmWorkDir = file("${project.buildDir}/src/main/myfrontend/npm")
-
-  // Set the work directory for Yarn
-  yarnWorkDir = file("${project.buildDir}/src/main/myfrontend/yarn")
-
-  // Set the work directory where node_modules should be located
-  nodeModulesDir = file("${project.projectDir}/src/main/myfrontend")
+    version = '10.16.2'                                   // Version of node to use.
+    distBaseUrl = 'https://nodejs.org/dist'               // Base URL for fetching node distributions (change if you have a mirror).
+    download = true                                       // true will download node, false for globally installed node
+  
+    workDir = file("${project.buildDir}/nodejs")          // directory for unpacking node
+    npmWorkDir = file("${project.buildDir}/npm")          // directory for NPM
+    yarnWorkDir = file("${project.buildDir}/yarn")        // directory for Yarn
+    nodeModulesDir = file("${project.projectDir}")        // directory where node_modules should be located
+   
+    // Node.js project directory location, where package.json file and node_modules directory are located
+    nodeProjectDir = file("${project.projectDir}/src/main/myfrontend")
 }
 
-repositories.whenObjectAdded {
-    if (it instanceof IvyArtifactRepository) {
-        metadataSources {
-            artifact()
-        }
-    }
+task bundle(type: NpmTask, dependsOn: npmInstall) {
+    args = ['run', 'bundle']
 }
-
-task npmInstallDependencies(type: NpmTask) {
-	dependsOn 'npmSetup'
-	execOverrides {
-	  it.ignoreExitValue = true
-    it.workingDir = 'src/main/myfrontend'
-  }
-  args = ['install']
-}
-
-task npmBuild(type: NpmTask) {
-	dependsOn 'npmInstallDependencies'  //only builds if npmInstallDependencies does run
-  	execOverrides {
-    it.workingDir = 'src/main/myfrontend'
-  }
-  args = ['run', 'build']
-}
-
-task copyFrontendtoBuild(type: Copy) {
-	dependsOn 'npmBuild'
-	from "$projectDir/src/main/myfrontend/build/"
-	into "$buildDir/src/main/resources/static"  //will be converted to html in this file
-}
-
-processResources {
-	dependsOn 'copyFrontendtoBuild'
-}
+ 
+assemble.dependsOn(bundle)
 
 test {
 	useJUnitPlatform()
 }
-

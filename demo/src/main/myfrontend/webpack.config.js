@@ -4,7 +4,7 @@ module.exports = {
   entry: './src/index.js',
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, '../resources/static'),
+    path: path.resolve(__dirname, '../resources/static/built'),
   },
   module: {
     rules: [
@@ -15,8 +15,11 @@ module.exports = {
           loader: 'babel-loader',
           options: {
             presets: [
-              '@babel/preset-env', 
-              ['@babel/preset-react', {"runtime": "automatic"}]
+              '@babel/preset-env',
+              ['@babel/preset-react', { "runtime": "automatic" }],
+            ],
+            plugins: [
+              "@babel/plugin-proposal-class-properties"
             ]
           }
         }
